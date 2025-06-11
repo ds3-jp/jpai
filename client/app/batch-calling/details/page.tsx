@@ -24,7 +24,7 @@ import { ArrowLeft, Search, Download, FileText, Users, Clock, Calendar, Phone, C
 import { useToast } from '@/hooks/use-toast'
 import { SupabaseService, BatchRecord } from '@/app/services/supabase-service'
 
-interface BatchDetailsPageProps {}
+interface BatchDetailsPageProps { }
 
 interface EnrichedCSVData {
   [key: string]: any
@@ -39,7 +39,7 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const batchId = searchParams.get('id')
-  
+
   const [batch, setBatch] = useState<BatchRecord | null>(null)
   const [csvData, setCsvData] = useState<any[]>([])
   const [enrichedData, setEnrichedData] = useState<EnrichedCSVData[]>([])
@@ -67,11 +67,11 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
 
     try {
       setIsLoading(true)
-      
+
       // Get batch details
       const batches = await SupabaseService.getBatches()
       const batchDetails = batches.find(b => b.id === batchId)
-      
+
       if (!batchDetails) {
         toast({
           title: "Batch Not Found",
@@ -83,24 +83,24 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
       }
 
       setBatch(batchDetails)
-      
+
       // Extract CSV data
       const csvData = batchDetails.csv_data || []
       setCsvData(csvData)
-      
+
       // Get call data for this batch
       const callData = await SupabaseService.getBatchCallData(batchId)
-      
+
       // Create a map of recipient_id to call data for faster lookup
       const callDataMap = new Map(
         callData.map(call => [call.recipient_id, call])
       )
-      
+
       // Enrich CSV data with call information
       const enrichedData = csvData.map(row => {
         const recipientId = row.recipient_id
         const callInfo = callDataMap.get(recipientId)
-        
+
         return {
           ...row,
           call_success: callInfo?.call_success || null,
@@ -110,20 +110,20 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
           event_timestamp: callInfo?.event_timestamp || null
         }
       })
-      
+
       setEnrichedData(enrichedData)
       setFilteredData(enrichedData)
-      
+
       // Extract unique values for call success filter only
       const uniqueCallSuccess = [...new Set(enrichedData.map(row => row.call_success).filter(Boolean))]
       setAvailableCallSuccess(uniqueCallSuccess)
-      
+
       // Extract column names including new call data columns
       if (enrichedData.length > 0) {
         const columns = Object.keys(enrichedData[0])
         setCsvColumns(columns)
       }
-      
+
     } catch (error) {
       console.error('Error loading batch details:', error)
       toast({
@@ -143,7 +143,7 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
     // Apply search filter
     if (searchTerm.trim()) {
       filtered = filtered.filter(row => {
-        return Object.values(row).some(value => 
+        return Object.values(row).some(value =>
           String(value).toLowerCase().includes(searchTerm.toLowerCase())
         )
       })
@@ -191,25 +191,25 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
 
     // Convert enriched data to CSV format
     const headers = csvColumns.join(',')
-    const rows = enrichedData.map(row => 
+    const rows = enrichedData.map(row =>
       csvColumns.map(col => {
         const value = row[col] || ''
         // Escape commas and quotes in CSV
-        return typeof value === 'string' && (value.includes(',') || value.includes('"')) 
-          ? `"${value.replace(/"/g, '""')}"` 
+        return typeof value === 'string' && (value.includes(',') || value.includes('"'))
+          ? `"${value.replace(/"/g, '""')}"`
           : value
       }).join(',')
     )
-    
+
     const csvContent = [headers, ...rows].join('\n')
-    
+
     // Download file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
     link.download = `${batch?.batch_name || 'batch'}_results.csv`
     link.click()
-    
+
     toast({
       title: "Export Successful",
       description: "CSV file with call results has been downloaded.",
@@ -229,38 +229,38 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
     // Get original CSV columns excluding recipient_id and call-related columns, and map name/phone back to original names
     const originalColumns = Object.keys(filteredData[0])
       .filter(col => !['recipient_id', 'call_success', 'call_status', 'call_duration', 'conversation_id', 'event_timestamp'].includes(col))
-    
+
     // Map columns back to original CSV format
     const exportColumns = originalColumns.map(col => {
       if (col === 'name') return 'FullName'
       if (col === 'phone') return 'number'
       return col
     })
-    
+
     // Convert filtered data to CSV format with mapped column names
     const headers = exportColumns.join(',')
-    const rows = filteredData.map(row => 
+    const rows = filteredData.map(row =>
       originalColumns.map(col => {
         const value = row[col] || ''
         // Escape commas and quotes in CSV
-        return typeof value === 'string' && (value.includes(',') || value.includes('"')) 
-          ? `"${value.replace(/"/g, '""')}"` 
+        return typeof value === 'string' && (value.includes(',') || value.includes('"'))
+          ? `"${value.replace(/"/g, '""')}"`
           : value
       }).join(',')
     )
-    
+
     const csvContent = [headers, ...rows].join('\n')
-    
+
     // Download file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
-    
+
     // Add filter info to filename if filters are active
     const filterSuffix = getActiveFilterCount() > 0 ? '_filtered' : '_original'
     link.download = `${batch?.batch_name || 'batch'}${filterSuffix}.csv`
     link.click()
-    
+
     toast({
       title: "Export Successful",
       description: `Exported ${filteredData.length} rows with original column names${getActiveFilterCount() > 0 ? ' (filtered data)' : ''}.`,
@@ -327,7 +327,7 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
 
   const getCallSuccessBadge = (success: string | null) => {
     if (!success) return <Badge variant="outline">No Call</Badge>
-    
+
     switch (success.toLowerCase()) {
       case 'true':
       case 'success':
@@ -358,7 +358,7 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
 
   const getCallStatusBadge = (status: string | null) => {
     if (!status) return <Badge variant="outline">-</Badge>
-    
+
     const statusColors: { [key: string]: string } = {
       'completed': 'bg-green-100 text-green-800',
       'answered': 'bg-green-100 text-green-800',
@@ -367,9 +367,9 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
       'failed': 'bg-red-100 text-red-800',
       'canceled': 'bg-gray-100 text-gray-800'
     }
-    
+
     const colorClass = statusColors[status.toLowerCase()] || 'bg-blue-100 text-blue-800'
-    
+
     return (
       <Badge className={colorClass} variant="secondary">
         {status}
@@ -410,7 +410,7 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
       'conversation_id': 'Conversation ID',
       'recipient_id': 'Recipient ID'
     }
-    
+
     return headerMap[column] || column
   }
 
@@ -477,22 +477,21 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
+        <Card>
+          <CardContent className="px-4">
+            <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x">
+
+              {/* Total Recipients */}
+              <div className="flex flex-1 items-center gap-2 px-4 py-1">
                 <Users className="h-5 w-5 text-blue-600" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Recipients</p>
                   <p className="text-2xl font-bold">{batch.total_recipients}</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
+              {/* Progress */}
+              <div className="flex flex-1 items-center gap-2 px-4 py-1">
                 <Clock className="h-5 w-5 text-green-600" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Progress</p>
@@ -504,17 +503,14 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
+              {/* Success Rate */}
+              <div className="flex flex-1 items-center gap-2 px-4 py-1">
                 <FileText className="h-5 w-5 text-purple-600" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
                   <p className="text-2xl font-bold">
-                    {batch.total_recipients > 0 && (batch.successful_calls || 0) > 0 
+                    {batch.total_recipients > 0 && (batch.successful_calls || 0) > 0
                       ? Math.round(((batch.successful_calls || 0) / batch.total_recipients) * 100)
                       : 0}%
                   </p>
@@ -523,12 +519,9 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
+              {/* Created Info */}
+              <div className="flex flex-1 items-center gap-2 px-4 py-1">
                 <Calendar className="h-5 w-5 text-orange-600" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Created</p>
@@ -540,9 +533,11 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+
+            </div>
+          </CardContent>
+        </Card>
+
 
         {/* Recipients Data with Call Results */}
         <Card>
@@ -586,7 +581,7 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
                           <Checkbox
                             id="no-call-success"
                             checked={callSuccessFilter.includes('No Call')}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked) =>
                               handleCallSuccessFilterChange('No Call', !!checked)
                             }
                           />
@@ -599,7 +594,7 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
                             <Checkbox
                               id={`success-${value}`}
                               checked={callSuccessFilter.includes(value)}
-                              onCheckedChange={(checked) => 
+                              onCheckedChange={(checked) =>
                                 handleCallSuccessFilterChange(value, !!checked)
                               }
                             />
@@ -634,7 +629,7 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
                           <Checkbox
                             id="no-call-status"
                             checked={callStatusFilter.includes('No Call')}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked) =>
                               handleCallStatusFilterChange('No Call', !!checked)
                             }
                           />
@@ -647,7 +642,7 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
                             <Checkbox
                               id={`status-${value}`}
                               checked={callStatusFilter.includes(value)}
-                              onCheckedChange={(checked) => 
+                              onCheckedChange={(checked) =>
                                 handleCallStatusFilterChange(value, !!checked)
                               }
                             />
@@ -717,7 +712,7 @@ const BatchDetailsPage: React.FC<BatchDetailsPageProps> = () => {
                     </TableBody>
                   </Table>
                 </div>
-                
+
                 {filteredData.length === 0 && searchTerm && (
                   <div className="text-center py-8 text-muted-foreground">
                     No records match your search criteria
