@@ -57,8 +57,8 @@ const AppSidebar = () => {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link href="/">
-                <img src="\logoipsum-363.svg" alt="logo" width={20} height={20} />
-                <span className='font-semibold'>Juara Partners</span>
+                <img src="\logoipsum-363.svg" alt="logo" height={20} width={20}/>
+                <span className='font-semibold'>AKAD Agent</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

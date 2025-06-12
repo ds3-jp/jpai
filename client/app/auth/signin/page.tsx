@@ -52,15 +52,15 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen overflow-hidden flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img src="/logoipsum-363.svg" alt="logo" width={40} height={40} />
           </div>
-          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-bold">AKAD AI</CardTitle>
           <CardDescription>
-            Sign in to access the Nextweb Call Management System
+            Sign In
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

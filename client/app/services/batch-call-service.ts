@@ -47,7 +47,7 @@ interface CallDataRecord {
 }
 
 export class BatchCallService {
-  private static readonly API_BASE_URL = 'https://9442-175-139-185-29.ngrok-free.app'
+  private static readonly API_BASE_URL = 'https://c83a-118-100-170-23.ngrok-free.app'
   private static readonly BATCH_CALL_ENDPOINT = '/outbound-call'
 
   /**

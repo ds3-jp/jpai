@@ -14,12 +14,12 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  Phone, 
-  Clock, 
-  User, 
-  FileText, 
-  Play, 
+import {
+  Phone,
+  Clock,
+  User,
+  FileText,
+  Play,
   Pause,
   Volume2,
   CheckCircle,
@@ -60,7 +60,7 @@ export const CallDetailsSidePanel: React.FC<CallDetailsSidePanelProps> = ({
   // Memoize audio player configuration to prevent unnecessary recreations
   const audioPlayerConfig = useMemo(() => {
     if (!isClient) return {} // Prevent audio loading during SSR
-    
+
     return {
       src: audioUrl || undefined,
       onError: (error: string) => {
@@ -110,14 +110,14 @@ export const CallDetailsSidePanel: React.FC<CallDetailsSidePanelProps> = ({
         // Load call details
         const details = await CallHistoryService.getCallDetails(conversationId)
         setCallDetails(details)
-        
+
         // Only try to load audio if we have a valid conversation_id (not just recipient_id)
         if (details?.conversation_id) {
           try {
             console.log('Checking audio availability for:', details.conversation_id)
             const isAvailable = await CallHistoryService.isAudioAvailable(details.conversation_id)
             setAudioAvailable(isAvailable)
-            
+
             if (isAvailable) {
               console.log('Audio is available, loading...')
               const newAudioUrl = await CallHistoryService.getCallAudioUrl(details.conversation_id)
@@ -164,10 +164,10 @@ export const CallDetailsSidePanel: React.FC<CallDetailsSidePanelProps> = ({
 
   const formatDuration = (seconds: number | null): string => {
     if (!seconds) return 'N/A'
-    
+
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
-    
+
     if (mins > 0) {
       return `${mins}m ${secs}s`
     }
@@ -176,7 +176,7 @@ export const CallDetailsSidePanel: React.FC<CallDetailsSidePanelProps> = ({
 
   const formatTimestamp = (unixTimestamp: number): string => {
     if (!isClient) return 'Loading...' // Prevent hydration mismatch
-    
+
     try {
       const date = new Date(unixTimestamp * 1000)
       return date.toLocaleDateString('en-US', {
@@ -203,7 +203,7 @@ export const CallDetailsSidePanel: React.FC<CallDetailsSidePanelProps> = ({
 
   const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!duration) return
-    
+
     const rect = e.currentTarget.getBoundingClientRect()
     const clickX = e.clientX - rect.left
     const percentage = clickX / rect.width
@@ -246,10 +246,10 @@ export const CallDetailsSidePanel: React.FC<CallDetailsSidePanelProps> = ({
           <div className="flex items-center gap-3 w-full">
             {/* Play button skeleton */}
             <div className="w-16 h-8 bg-gray-300 rounded animate-pulse"></div>
-            
+
             {/* Progress bar skeleton */}
             <div className="flex-1 h-2 bg-gray-300 rounded-full animate-pulse"></div>
-            
+
             {/* Time display skeleton */}
             <div className="w-20 h-4 bg-gray-300 rounded animate-pulse"></div>
           </div>
@@ -288,17 +288,17 @@ export const CallDetailsSidePanel: React.FC<CallDetailsSidePanelProps> = ({
           )}
           {isAudioLoading ? 'Loading...' : isPlaying ? 'Pause' : 'Play'}
         </Button>
-        
-        <div 
+
+        <div
           className="flex-1 h-2 bg-gray-200 rounded-full cursor-pointer"
           onClick={handleSeek}
         >
-          <div 
+          <div
             className="h-2 bg-blue-500 rounded-full transition-all duration-100"
             style={{ width: `${progress}%` }}
           ></div>
         </div>
-        
+
         <span className="text-sm text-muted-foreground">
           {formatTime(currentTime)} / {formatTime(duration || callDetails?.call_duration || 0)}
         </span>
@@ -316,8 +316,8 @@ export const CallDetailsSidePanel: React.FC<CallDetailsSidePanelProps> = ({
           </SheetTitle>
           <SheetDescription>
             {conversationId ? (
-              callDetails?.conversation_id 
-                ? `Conversation ID: ${callDetails.conversation_id}` 
+              callDetails?.conversation_id
+                ? `Conversation ID: ${callDetails.conversation_id}`
                 : `Recipient ID: ${conversationId}`
             ) : 'Loading call details...'}
           </SheetDescription>
@@ -541,7 +541,7 @@ export const CallDetailsSidePanel: React.FC<CallDetailsSidePanelProps> = ({
                             {(() => {
                               // Parse transcript data
                               let transcriptData = [];
-                              
+
                               if (Array.isArray(callDetails.transcript)) {
                                 transcriptData = callDetails.transcript;
                               } else if (typeof callDetails.transcript === 'string') {
@@ -567,22 +567,40 @@ export const CallDetailsSidePanel: React.FC<CallDetailsSidePanelProps> = ({
                                 );
                               }
 
+                              // Replace the transcript rendering section in your TabsContent for "transcript"
+                              // This goes inside the map function where you render each transcript item
+
                               return transcriptData
                                 .filter(item => item.role && item.message && (item.role === 'agent' || item.role === 'user'))
                                 .map((item, index) => (
-                                  <div key={index} className={`p-3 rounded-lg ${
-                                    item.role === 'agent' 
-                                      ? 'border-r-8 border-1 border-blue-500' 
+                                  <div key={index} className={`p-3 rounded-lg ${item.role === 'agent'
+                                      ? 'border-r-8 border-1 border-blue-500'
                                       : 'border-l-8 border-1 border-yellow-500'
-                                  }`}>
+                                    }`}>
                                     <div className="flex items-center gap-2 mb-2">
                                       <Badge variant={item.role === 'agent' ? 'default' : 'secondary'}>
                                         {item.role === 'agent' ? 'Agent' : 'Customer'}
                                       </Badge>
                                       {item.time_in_call_secs && (
-                                        <span className="text-xs text-muted-foreground">
+                                        <button
+                                          onClick={() => {
+                                            if (audioUrl && !isAudioLoading) {
+                                              seek(item.time_in_call_secs);
+                                            }
+                                          }}
+                                          disabled={!audioUrl || isAudioLoading}
+                                          className={`text-xs px-2 py-1 rounded transition-colors ${audioUrl && !isAudioLoading
+                                              ? 'text-muted-foreground hover:text-foreground cursor-pointer'
+                                              : 'text-muted-foreground cursor-not-allowed'
+                                            }`}
+                                          title={
+                                            audioUrl && !isAudioLoading
+                                              ? `Click to jump to ${Math.floor(item.time_in_call_secs / 60)}:${String(item.time_in_call_secs % 60).padStart(2, '0')}`
+                                              : 'Audio not available'
+                                          }
+                                        >
                                           {Math.floor(item.time_in_call_secs / 60)}:{String(item.time_in_call_secs % 60).padStart(2, '0')}
-                                        </span>
+                                        </button>
                                       )}
                                     </div>
                                     <p className="text-sm leading-relaxed">{item.message}</p>

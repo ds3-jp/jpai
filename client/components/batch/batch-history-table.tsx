@@ -330,7 +330,7 @@ export const BatchHistoryTable: React.FC<BatchHistoryTableProps> = ({ onAddBatch
                 <TableRow>
                   <TableHead>Batch Name</TableHead>
                   <TableHead>Recipients</TableHead>
-                  <TableHead>Progress</TableHead>
+                  <TableHead>Connection</TableHead>
                   <TableHead>Success Rate</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>

@@ -184,6 +184,22 @@ const DashboardPage = () => {
     },
   } satisfies ChartConfig
 
+  // Specific color mapping for call outcomes
+  const getCallOutcomeColor = (outcome: string): string => {
+    const colorMap: { [key: string]: string } = {
+      'None': '#2D2D2D',
+      'success': '#52be4f',
+      'unsuccessful': '#e23636',
+      'user silent': '#edb95e',
+      'unknown': '#94d2bd',
+      'voicemail': '#1260cc'
+
+    }
+    
+    // Return specific color if mapped, otherwise use a default color
+    return colorMap[outcome] || '#94d2bd'
+  }
+
   // Transform verification data for stacked chart
   const verificationStackedData = useMemo(() => {
     if (!dashboardData?.chartData.nameVerification || !dashboardData?.chartData.icVerification) return []
@@ -227,7 +243,6 @@ const DashboardPage = () => {
   }, [dashboardData?.chartData.evaluationResults])
 
   const COLORS = ["#94d2bd", "#bc4749", "#ffd166", "#a7c957", "#6a994e", "#344e41"]
-  const COLORS_CO = ["#52be4f", "#e23636", "#ed975e","#edb95e","#36cedc","#a587ca","#7395ae","#557a95"]
 
   if (isLoading) {
     return (
@@ -496,11 +511,11 @@ const DashboardPage = () => {
           <CardContent className="flex flex-row items-center justify-between gap-6 px-6 pb-4">
             {/* Legend - Left Side */}
             <div className="flex flex-col justify-center gap-3 text-sm min-w-[120px]">
-              {chartData.callOutcomes.map((entry, index) => (
+              {chartData.callOutcomes.map((entry) => (
                 <div key={entry.outcome} className="flex items-center gap-2">
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: COLORS_CO[index % COLORS_CO.length] }}
+                    style={{ backgroundColor: getCallOutcomeColor(entry.outcome) }}
                   ></div>
                   <span className="text-xs truncate" title={entry.outcome}>
                     {entry.outcome}
@@ -530,8 +545,11 @@ const DashboardPage = () => {
                     innerRadius={50}
                     stroke="0"
                   >
-                    {chartData.callOutcomes.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS_CO[index % COLORS_CO.length]} />
+                    {chartData.callOutcomes.map((entry) => (
+                      <Cell 
+                        key={`cell-${entry.outcome}`} 
+                        fill={getCallOutcomeColor(entry.outcome)} 
+                      />
                     ))}
                   </Pie>
                 </PieChart>
