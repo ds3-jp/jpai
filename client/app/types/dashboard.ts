@@ -34,11 +34,19 @@ export interface ICVerificationResult {
   count: number
 }
 
+// New interface for calls per day data
+export interface CallsPerDayResult {
+  date: string
+  totalCalls: number
+  connectedCalls: number
+}
+
 export interface DashboardChartData {
   evaluationResults: EvaluationCriteriaResult[]
   callOutcomes: CallOutcomeResult[]
   nameVerification: NameVerificationResult[]
   icVerification: ICVerificationResult[]
+  callsPerDay: CallsPerDayResult[] // New field
 }
 
 export interface DashboardData {

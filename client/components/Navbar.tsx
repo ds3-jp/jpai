@@ -1,7 +1,7 @@
 "use client";
 
 import { LogOut, Moon, Sun } from 'lucide-react'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import {
   DropdownMenu,
@@ -22,18 +22,21 @@ import { useTheme } from 'next-themes'
 import { SidebarTrigger } from './ui/sidebar';
 import { useSession, signOut } from 'next-auth/react';
 import { Badge } from './ui/badge';
+import { cn } from '@/lib/utils';
 
 import { usePathname } from 'next/navigation'
 import { useMemo } from 'react'
 import { isAdmin } from '@/lib/auth/roles';
+import { Separator } from './ui/separator';
 
 const Navbar = () => {
     const { theme, setTheme } = useTheme();
     const pathname = usePathname();
     const { data: session, status } = useSession()
+    const [isScrolled, setIsScrolled] = useState(false)
 
     const pageTitle = useMemo(() => {
-    if (!pathname || pathname === "/") return "Home";
+    if (!pathname || pathname === "/") return "Dashboard";
     const segments = pathname.split('/').filter(Boolean);
     return segments[segments.length - 1]
         .replace(/-/g, ' ')
@@ -57,15 +60,31 @@ const Navbar = () => {
         .slice(0, 2)
     }
 
+    // Scroll effect for shadow
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrolled = window.scrollY > 10
+            setIsScrolled(scrolled)
+        }
+
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        handleScroll() // Check initial state
+
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
+
     const userRoles = session?.user?.roles || []
     const showSidebarTrigger = isAdmin(userRoles)
 
     return (
-        <nav className='sticky top-0 z-50 flex py-4 px-4 bg-background rounded-2xl items-center justify-between'>
+        <nav className={cn(
+            'sticky top-0 z-50 flex pb-4 pt-2 px-4 bg-background rounded-2xl items-center justify-between transition-shadow duration-200',
+            isScrolled && 'shadow-xl opacity-98 pb-2'
+        )}>
             {/* LEFT */}
             <div className='flex items-center gap-4'>
                 {showSidebarTrigger && <SidebarTrigger/>}
-                <span className="text-lg font-semibold">{pageTitle}</span>
+                <span className="text-base font-semibold">{pageTitle}</span>
             </div>
             
             {/* RIGHT */}

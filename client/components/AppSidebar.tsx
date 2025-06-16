@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react'
-import  {LayoutDashboard, PhoneForwarded, History, Settings, User2, ChevronUp, LogOut} from 'lucide-react'
+import  {LayoutDashboard, PhoneForwarded, History, Settings, User2, ChevronUp, LogOut, EllipsisVertical, ChevronsUpDown } from 'lucide-react'
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from './ui/sidebar'
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
@@ -9,7 +9,11 @@ import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { isAdmin } from '@/lib/auth/roles';
 
-const AppSidebar = () => {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  variant?: "sidebar" | "floating" | "inset"
+}
+
+const AppSidebar = ({ variant, ...props }: AppSidebarProps) => {
     const pathname = usePathname()
     const { data: session } = useSession()
     
@@ -51,14 +55,15 @@ const AppSidebar = () => {
     }
 
   return (
-    <Sidebar collapsible='icon'>
-      <SidebarHeader className='py-4'>
+    <Sidebar collapsible='icon' variant={variant} {...props}>
+      <SidebarHeader className='pt-3'>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link href="/">
                 <img src="\logoipsum-363.svg" alt="logo" height={20} width={20}/>
                 <span className='font-semibold'>AKAD Agent</span>
+                {/* <ChevronsUpDown className='ml-auto'/> */}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -91,7 +96,7 @@ const AppSidebar = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  <User2/> {session?.user?.name || 'User'} <ChevronUp className='ml-auto'/>
+                  <User2/> {session?.user?.name || 'User'} <EllipsisVertical className='ml-auto'/>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent>

@@ -135,7 +135,7 @@ const CallHistoryPage = () => {
     const successful = calls.filter(call => call.call_success === 'success').length
     const failed = calls.filter(call => call.call_success === 'failure').length
     const unknown = calls.filter(call => call.call_success === 'unknown').length
-    const totalcalls = successful+failed+unknown
+    const totalcalls = successful + failed + unknown
     const nameMatched = calls.filter(call =>
       call.data_collection_results?.nameVerified?.value === 'Match'
     ).length
@@ -162,7 +162,7 @@ const CallHistoryPage = () => {
   }, [calls])
 
   return (
-    <div className="mx-auto px-4 pb-4 space-y-6" suppressHydrationWarning>
+    <div className="mx-auto px-4 pb-4 space-y-4" suppressHydrationWarning>
       {/* Header
       <div className="flex items-center gap-2">
         <History className="h-6 w-6" />
@@ -174,54 +174,54 @@ const CallHistoryPage = () => {
         {/* Total Calls */}
         <Card>
           <CardContent className="relative px-4">
-            <Phone className="absolute top-4 right-4 h-5 w-5 text-blue-500" />
+            <Phone className="absolute top-4 right-4 h-5 w-5 text-[#9ca3af]" />
             <p className="text-sm text-muted-foreground">Total Calls</p>
             <p className="text-2xl font-bold">{statusStats.totalcalls}</p>
-          </CardContent>
-        </Card>
-
-        {/* Successful Calls */}
-        <Card>
-          <CardContent className="relative px-4">
-            <CheckCircle className="absolute top-4 right-4 h-5 w-5 text-green-500" />
-            <p className="text-sm text-muted-foreground">Successful</p>
-            <p className="text-2xl font-bold text-green-600">{statusStats.successful}</p>
-          </CardContent>
-        </Card>
-
-        {/* Failed Calls */}
-        <Card>
-          <CardContent className="relative px-4">
-            <XCircle className="absolute top-4 right-4 h-5 w-5 text-red-500" />
-            <p className="text-sm text-muted-foreground">Failed</p>
-            <p className="text-2xl font-bold text-red-600">{statusStats.failed}</p>
           </CardContent>
         </Card>
 
         {/* Twilio Completed */}
         <Card>
           <CardContent className="relative px-4">
-            <PhoneCall className="absolute top-4 right-4 h-5 w-5 text-blue-500" />
+            <PhoneCall className="absolute top-4 right-4 h-5 w-5 text-[#34d399]" />
             <p className="text-sm text-muted-foreground">Twilio Completed</p>
-            <p className="text-2xl font-bold text-blue-600">{statusStats.twilioCompleted}</p>
+            <p className="text-2xl font-bold">{statusStats.twilioCompleted}</p>
+          </CardContent>
+        </Card>
+
+        {/* Successful Calls */}
+        <Card>
+          <CardContent className="relative px-4">
+            <CheckCircle className="absolute top-4 right-4 h-5 w-5 text-[#4ade80]" />
+            <p className="text-sm text-muted-foreground">Successful</p>
+            <p className="text-2xl font-bold">{statusStats.successful}</p>
+          </CardContent>
+        </Card>
+
+        {/* Failed Calls */}
+        <Card>
+          <CardContent className="relative px-4">
+            <XCircle className="absolute top-4 right-4 h-5 w-5 text-[#f87171]" />
+            <p className="text-sm text-muted-foreground">Failed</p>
+            <p className="text-2xl font-bold">{statusStats.failed}</p>
           </CardContent>
         </Card>
 
         {/* Name Verified */}
         <Card>
           <CardContent className="relative px-4">
-            <UserCheck className="absolute top-4 right-4 h-5 w-5 text-purple-500" />
+            <UserCheck className="absolute top-4 right-4 h-5 w-5 text-[#22d3ee]" />
             <p className="text-sm text-muted-foreground">Name Matched</p>
-            <p className="text-2xl font-bold text-purple-600">{statusStats.nameMatched}</p>
+            <p className="text-2xl font-bold">{statusStats.nameMatched}</p>
           </CardContent>
         </Card>
 
         {/* IC Verified */}
         <Card>
           <CardContent className="relative px-4">
-            <IdCard className="absolute top-4 right-4 h-5 w-5 text-orange-500" />
+            <IdCard className="absolute top-4 right-4 h-5 w-5 text-[#22d3ee]" />
             <p className="text-sm text-muted-foreground">IC Matched</p>
-            <p className="text-2xl font-bold text-orange-600">{statusStats.icMatched}</p>
+            <p className="text-2xl font-bold">{statusStats.icMatched}</p>
           </CardContent>
         </Card>
       </div>
@@ -229,26 +229,30 @@ const CallHistoryPage = () => {
 
 
       {/* Filters and Search */}
-      <div className="ml-0 grid md:grid-cols-4 lg:grid-cols-9 justify-between gap-2">
-        <Filter className="h-5 w-5 mt-1 absolute" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-9 gap-4 items-start">
         {/* Search */}
-        <div className="ml-10 lg:col-span-2 flex">
-          {/* <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" /> */}
+        <div className="xl:col-span-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
+            Search
+          </label>
           <Input
             placeholder="Search by name or conversation ID..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-4"
+            className="w-full"
           />
         </div>
 
         {/* Status Filter */}
-        <div className='mx-auto flex gap-4'>
+        <div>
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
+            Status
+          </label>
           <Select
             value={filters.status}
             onValueChange={(value) => handleFilterChange('status', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -257,14 +261,18 @@ const CallHistoryPage = () => {
               <SelectItem value="failed">Failed</SelectItem>
             </SelectContent>
           </Select>
+        </div>
 
-
-          {/* Date Range Filter */}
+        {/* Date Range Filter */}
+        <div>
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
+            Date Range
+          </label>
           <Select
             value={filters.dateRange}
             onValueChange={(value) => handleFilterChange('dateRange', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Date Range" />
             </SelectTrigger>
             <SelectContent>
@@ -275,13 +283,18 @@ const CallHistoryPage = () => {
               <SelectItem value="all">All Time</SelectItem>
             </SelectContent>
           </Select>
+        </div>
 
-          {/* Agent Filter */}
+        {/* Agent Filter */}
+        <div>
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
+            Agent
+          </label>
           <Select
             value={filters.agentId}
             onValueChange={(value) => handleFilterChange('agentId', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Agent" />
             </SelectTrigger>
             <SelectContent>
@@ -293,13 +306,18 @@ const CallHistoryPage = () => {
               ))}
             </SelectContent>
           </Select>
+        </div>
 
-          {/* Twilio Status Filter */}
+        {/* Twilio Status Filter */}
+        <div>
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
+            Twilio Status
+          </label>
           <Select
             value={filters.twilioStatus || 'all'}
             onValueChange={(value) => handleFilterChange('twilioStatus', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Twilio Status" />
             </SelectTrigger>
             <SelectContent>
@@ -311,13 +329,18 @@ const CallHistoryPage = () => {
               ))}
             </SelectContent>
           </Select>
+        </div>
 
-          {/* Name Verification Filter */}
+        {/* Name Verification Filter */}
+        <div>
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
+            Name Verification
+          </label>
           <Select
             value={filters.nameVerified || 'all'}
             onValueChange={(value) => handleFilterChange('nameVerified', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Name Verified" />
             </SelectTrigger>
             <SelectContent>
@@ -328,13 +351,18 @@ const CallHistoryPage = () => {
               <SelectItem value="None">None</SelectItem>
             </SelectContent>
           </Select>
+        </div>
 
-          {/* IC Verification Filter */}
+        {/* IC Verification Filter */}
+        <div>
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
+            IC Verification
+          </label>
           <Select
             value={filters.icVerified || 'all'}
             onValueChange={(value) => handleFilterChange('icVerified', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="IC Verified" />
             </SelectTrigger>
             <SelectContent>
@@ -344,12 +372,18 @@ const CallHistoryPage = () => {
               <SelectItem value="None">None</SelectItem>
             </SelectContent>
           </Select>
+        </div>
 
+        {/* Call Outcome Filter */}
+        <div>
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
+            Call Outcome
+          </label>
           <Select
             value={filters.callOutcome || 'all'}
             onValueChange={(value) => handleFilterChange('callOutcome', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Call Outcome" />
             </SelectTrigger>
             <SelectContent>

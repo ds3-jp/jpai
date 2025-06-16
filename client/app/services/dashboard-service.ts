@@ -8,7 +8,8 @@ import {
   EvaluationCriteriaResult,
   CallOutcomeResult,
   NameVerificationResult,
-  ICVerificationResult
+  ICVerificationResult,
+  CallsPerDayResult
 } from '@/app/types/dashboard'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -63,8 +64,7 @@ export class DashboardService {
               startDate = new Date(now.getFullYear(), now.getMonth(), 1)
               break
             case 'quarter':
-              const quarter = Math.floor(now.getMonth() / 3)
-              startDate = new Date(now.getFullYear(), quarter * 3, 1)
+              startDate = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1)
               break
             default:
               startDate = new Date(0)
@@ -141,11 +141,15 @@ export class DashboardService {
     // IC verification results
     const icVerification = this.getICVerificationResults(callData)
 
+    // Calls per day results
+    const callsPerDay = this.getCallsPerDayResults(callData)
+
     return {
       evaluationResults,
       callOutcomes,
       nameVerification,
-      icVerification
+      icVerification,
+      callsPerDay
     }
   }
 
@@ -209,6 +213,38 @@ export class DashboardService {
       status: status as 'Match' | 'No Match' | 'None',
       count
     }))
+  }
+
+  // New method to get calls per day data
+  private static getCallsPerDayResults(callData: CallDataRecord[]): CallsPerDayResult[] {
+    const dailyCalls = new Map<string, { total: number, connected: number }>()
+    
+    callData.forEach(call => {
+      if (call.event_timestamp) {
+        // Convert Unix timestamp to date string
+        const date = new Date(call.event_timestamp * 1000)
+        const dateStr = date.toISOString().split('T')[0] // YYYY-MM-DD format
+        
+        const existing = dailyCalls.get(dateStr) || { total: 0, connected: 0 }
+        existing.total += 1
+        
+        // Count connected calls (completed status)
+        if (call.call_status === 'completed') {
+          existing.connected += 1
+        }
+        
+        dailyCalls.set(dateStr, existing)
+      }
+    })
+
+    // Convert to array and sort by date
+    return Array.from(dailyCalls.entries())
+      .map(([date, counts]) => ({
+        date,
+        totalCalls: counts.total,
+        connectedCalls: counts.connected
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date))
   }
 
   static async getAgents(): Promise<Array<{ id: string, name: string }>> {

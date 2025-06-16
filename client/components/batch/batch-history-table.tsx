@@ -363,7 +363,7 @@ export const BatchHistoryTable: React.FC<BatchHistoryTableProps> = ({ onAddBatch
                           </span>
                           <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
                             <div 
-                              className="h-full bg-blue-500 transition-all"
+                              className="h-full bg-[#60a5fa] transition-all"
                               style={{ 
                                 width: `${getProgress(batch.completed_calls || 0, batch.total_recipients)}%` 
                               }}
@@ -380,7 +380,7 @@ export const BatchHistoryTable: React.FC<BatchHistoryTableProps> = ({ onAddBatch
                             <span>{getSuccessRate(batch.successful_calls || 0, batch.total_recipients)}%</span>
                             <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
                               <div 
-                                className="h-full bg-green-500 transition-all"
+                                className="h-full bg-[#4ade80] transition-all"
                                 style={{ 
                                   width: `${getSuccessRate(batch.successful_calls || 0, batch.total_recipients)}%` 
                                 }}

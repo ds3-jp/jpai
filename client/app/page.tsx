@@ -31,7 +31,9 @@ import {
   PolarRadiusAxis,
   RadialBar,
   RadialBarChart,
-  CartesianGrid
+  CartesianGrid,
+  Area,
+  AreaChart
 } from 'recharts'
 import {
   Phone,
@@ -44,7 +46,8 @@ import {
   UserCheck,
   IdCard,
   CheckCircle,
-  Activity
+  Activity,
+  Calendar
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { DashboardService } from '@/app/services/dashboard-service'
@@ -55,8 +58,9 @@ const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [agents, setAgents] = useState<Array<{ id: string, name: string }>>([])
   const [batches, setBatches] = useState<Array<{ id: string, name: string }>>([])
+  const [callsTimeRange, setCallsTimeRange] = useState<string>("30d")
   const [filters, setFilters] = useState<DashboardFilters>({
-    dateRange: 'all',
+    dateRange: 'today', // Changed from 'all' to 'today'
     agentId: 'all',
     batchId: 'all',
   })
@@ -114,19 +118,41 @@ const DashboardPage = () => {
     return `${mins}m ${secs}s`
   }
 
+  // Filter calls per day data based on time range
+  const filteredCallsPerDayData = useMemo(() => {
+    if (!dashboardData?.chartData.callsPerDay) return []
+
+    const now = new Date()
+    let daysToSubtract = 30
+
+    if (callsTimeRange === "7d") {
+      daysToSubtract = 7
+    } else if (callsTimeRange === "30d") {
+      daysToSubtract = 30
+    } else if (callsTimeRange === "180d") {
+      daysToSubtract = 180
+    }
+
+    const startDate = new Date(now)
+    startDate.setDate(startDate.getDate() - daysToSubtract)
+    const startDateStr = startDate.toISOString().split('T')[0]
+
+    return dashboardData.chartData.callsPerDay.filter(item => item.date >= startDateStr)
+  }, [dashboardData?.chartData.callsPerDay, callsTimeRange])
+
   // Chart configurations
   const evaluationResultsConfig = {
     success: {
       label: "Success",
-      color: "#52be4f",
+      color: "#4ade80",
     },
     failure: {
       label: "Failure",
-      color: "#e23636",
+      color: "#ef4444",
     },
     unknown: {
       label: "Unknown",
-      color: "#edb95e",
+      color: "#fde047",
     },
   } satisfies ChartConfig
 
@@ -172,15 +198,27 @@ const DashboardPage = () => {
   const verificationConfig = {
     match: {
       label: "Match",
-      color: "#52be4f",
+      color: "#4ade80",
     },
     partialMatch: {
       label: "Partial Match",
-      color: "#edb95e",
+      color: "#fde047",
     },
     noMatch: {
       label: "No Match",
-      color: "#e23636",
+      color: "#ef4444",
+    },
+  } satisfies ChartConfig
+
+  // Calls per day chart config
+  const callsPerDayConfig = {
+    totalCalls: {
+      label: "Total Calls",
+      color: "var(--chart-1)",
+    },
+    connectedCalls: {
+      label: "Connected Calls",
+      color: "var(--chart-2)",
     },
   } satisfies ChartConfig
 
@@ -188,15 +226,13 @@ const DashboardPage = () => {
   const getCallOutcomeColor = (outcome: string): string => {
     const colorMap: { [key: string]: string } = {
       'None': '#2D2D2D',
-      'success': '#52be4f',
-      'unsuccessful': '#e23636',
-      'user silent': '#edb95e',
+      'success': '#4ade80',
+      'unsuccessful': '#ef4444',
+      'user silent': '#fde047',
       'unknown': '#94d2bd',
       'voicemail': '#1260cc'
-
     }
-    
-    // Return specific color if mapped, otherwise use a default color
+
     return colorMap[outcome] || '#94d2bd'
   }
 
@@ -242,8 +278,6 @@ const DashboardPage = () => {
     return dashboardData?.chartData.evaluationResults.reduce((sum, item) => sum + item.count, 0) || 0
   }, [dashboardData?.chartData.evaluationResults])
 
-  const COLORS = ["#94d2bd", "#bc4749", "#ffd166", "#a7c957", "#6a994e", "#344e41"]
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -270,70 +304,74 @@ const DashboardPage = () => {
   const { stats, chartData } = dashboardData
 
   return (
-    <div className="px-4 mx-auto pb-4 space-y-6">
+    <div className="px-4 mx-auto pb-4 space-y-3">
       {/* Filters */}
-      <div className="flex items-center gap-4">
-        <Filter className="h-5 w-5" />
-        <div className="flex gap-4">
-          <Select
-            value={filters.dateRange}
-            onValueChange={(value) => handleFilterChange('dateRange', value)}
-          >
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Date Range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="week">This Week</SelectItem>
-              <SelectItem value="month">This Month</SelectItem>
-              <SelectItem value="quarter">This Quarter</SelectItem>
-              <SelectItem value="all">All Time</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-3 items-center">
+        {/* Date Range Filter */}
+        <Select
+          value={filters.dateRange}
+          onValueChange={(value) => handleFilterChange('dateRange', value)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Date Range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="today">Today</SelectItem>
+            <SelectItem value="week">This Week</SelectItem>
+            <SelectItem value="month">This Month</SelectItem>
+            <SelectItem value="quarter">This Quarter</SelectItem>
+            <SelectItem value="all">All Time</SelectItem>
+          </SelectContent>
+        </Select>
 
-          <Select
-            value={filters.agentId}
-            onValueChange={(value) => handleFilterChange('agentId', value)}
-          >
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Agent" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Agents</SelectItem>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  {agent.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Agent Filter */}
+        <Select
+          value={filters.agentId}
+          onValueChange={(value) => handleFilterChange('agentId', value)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Agent" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Agents</SelectItem>
+            {agents.map((agent) => (
+              <SelectItem key={agent.id} value={agent.id}>
+                {agent.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Select
-            value={filters.batchId}
-            onValueChange={(value) => handleFilterChange('batchId', value)}
-          >
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Batch" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Batches</SelectItem>
-              {batches.map((batch) => (
-                <SelectItem key={batch.id} value={batch.id}>
-                  {batch.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Batch Filter */}
+        <Select
+          value={filters.batchId}
+          onValueChange={(value) => handleFilterChange('batchId', value)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Batch" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Batches</SelectItem>
+            {batches.map((batch) => (
+              <SelectItem key={batch.id} value={batch.id}>
+                {batch.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Empty spaces for additional filters or actions */}
+        <div className="hidden lg:block"></div>
+        <div className="hidden lg:block"></div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-6">
         {/* Total Phone Numbers */}
         <Card>
           <CardContent className="flex items-center justify-between px-4">
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-muted-foreground">Total Phone Numbers</p>
+              <p className="text-sm text-muted-foreground">Total Numbers</p>
               <p className="text-2xl font-bold mt-1 truncate">
                 {stats.totalPhoneNumbers.toLocaleString()}
               </p>
@@ -404,7 +442,7 @@ const DashboardPage = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-6">
         {/* Evaluation Criteria Results Radial Chart */}
         <Card className='lg:col-span-2'>
           <CardHeader className="items-start pb-0">
@@ -546,9 +584,9 @@ const DashboardPage = () => {
                     stroke="0"
                   >
                     {chartData.callOutcomes.map((entry) => (
-                      <Cell 
-                        key={`cell-${entry.outcome}`} 
-                        fill={getCallOutcomeColor(entry.outcome)} 
+                      <Cell
+                        key={`cell-${entry.outcome}`}
+                        fill={getCallOutcomeColor(entry.outcome)}
                       />
                     ))}
                   </Pie>
@@ -606,6 +644,120 @@ const DashboardPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Calls Per Day Area Chart - Full Width */}
+      <Card className="w-full">
+        <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
+          <div className="grid flex-1 gap-1">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Calls Per Day
+            </CardTitle>
+            <CardDescription>
+              Daily call volume showing total calls and connected calls over time
+            </CardDescription>
+          </div>
+          <Select value={callsTimeRange} onValueChange={setCallsTimeRange}>
+            <SelectTrigger
+              className="w-[160px] rounded-lg"
+              aria-label="Select time range"
+            >
+              <SelectValue placeholder="Select range" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="7d" className="rounded-lg">
+                Last 7 days
+              </SelectItem>
+              <SelectItem value="30d" className="rounded-lg">
+                Last 30 days
+              </SelectItem>
+              <SelectItem value="180d" className="rounded-lg">
+                Last 6 months
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+          <ChartContainer
+            config={callsPerDayConfig}
+            className="aspect-auto h-[250px] w-full"
+          >
+            <AreaChart data={filteredCallsPerDayData}>
+              <defs>
+                <linearGradient id="fillTotalCalls" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="#3b82f6"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="#3b82f6"
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+                <linearGradient id="fillConnectedCalls" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="#22c55e"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="#22c55e"
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value) => {
+                  const date = new Date(value)
+                  return date.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                }}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value) => {
+                      return new Date(value).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    }}
+                    indicator="dot"
+                  />
+                }
+              />
+              <Area
+                dataKey="connectedCalls"
+                type="natural"
+                fill="url(#fillConnectedCalls)"
+                stroke="#22c55e"
+                stackId="a"
+              />
+              <Area
+                dataKey="totalCalls"
+                type="natural"
+                fill="url(#fillTotalCalls)"
+                stroke="#3b82f6"
+                stackId="a"
+              />
+              <ChartLegend content={<ChartLegendContent />} />
+            </AreaChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
     </div>
   )
 }

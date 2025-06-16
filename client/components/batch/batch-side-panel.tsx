@@ -268,8 +268,8 @@ export const BatchSidePanel: React.FC<BatchSidePanelProps> = ({
           {/* Accordion for Configuration and CSV Upload */}
           <Accordion type="multiple" defaultValue={["csv-upload"]} className="space-y-4">
             {/* Batch Configuration Accordion */}
-            <AccordionItem value="batch-config" className="border rounded-xl">
-              <Card className="border-0">
+            <AccordionItem value="batch-config" className="border rounded-md">
+              <Card className="border-0 rounded-md">
                 <AccordionTrigger className="px-6 py-4 hover:no-underline">
                   <div className="flex items-center gap-2 text-left">
                     <Clock className="h-5 w-5" />
@@ -335,8 +335,8 @@ export const BatchSidePanel: React.FC<BatchSidePanelProps> = ({
             </AccordionItem>
 
             {/* CSV Upload Accordion */}
-            <AccordionItem value="csv-upload" className="border rounded-xl">
-              <Card className="border-0">
+            <AccordionItem value="csv-upload" className="border rounded-md">
+              <Card className="border-0 rounded-md">
                 <AccordionTrigger className="px-6 py-4 hover:no-underline">
                   <div className="flex items-center gap-2 text-left">
                     <FileSpreadsheet className="h-5 w-5" />

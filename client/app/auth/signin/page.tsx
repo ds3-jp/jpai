@@ -52,7 +52,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen overflow-hidden flex items-center justify-center bg-background p-4">
+    <div className="overflow-hidden flex items-center justify-center bg-background px-4 h-[calc(100vh-120px)]">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
